@@ -180,7 +180,6 @@ body {
 }
 
 .chart-sector {
-  transition: opacity 160ms ease;
   cursor: pointer;
 }
 .participation-panel [data-slot="chart"] {

@@ -1,12 +1,11 @@
 import { useState } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { useReducedMotion } from "motion/react"
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { EVENT_LEAD_PREVIEW_ID } from "@/data/seeds/members"
 import { formatClubDate } from "@/domain/dates"
 import { getEventLifecycle, getProjectStatusCounts } from "@/domain/selectors"
 import type { AppState } from "@/domain/types"
-import { motionTiming } from "@/shared/motion-system"
 
 const chartColors = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"]
 const participationConfig = {
@@ -69,10 +68,10 @@ export function AnalyticsSection({ state, now }: { state: AppState; now: Date })
       {state.projects.length ? <>
         <div className="relative min-w-0" role="img" aria-label={`Project status chart for ${state.projects.length} projects`}>
           <ChartContainer config={projectConfig} className="h-52 w-full aspect-auto px-4">
-            <PieChart accessibilityLayer><ChartTooltip content={<ChartTooltipContent nameKey="status" labelFormatter={(_, payload) => payload[0]?.payload?.status ?? ""} formatter={(value) => { const count = Number(value); return <span className="font-mono font-medium tabular-nums text-foreground">{count.toLocaleString()} {count === 1 ? "project" : "projects"}</span> }} />} /><Pie data={visibleStatuses} dataKey="count" nameKey="status" innerRadius="56%" outerRadius="76%" paddingAngle={2} stroke="var(--card)" animationBegin={0} animationDuration={reducedMotion ? 0 : 650} isAnimationActive={!reducedMotion} onMouseEnter={(_, index) => setHoveredStatus(visibleStatuses[index]?.status ?? null)} onMouseLeave={() => setHoveredStatus(null)}>{visibleStatuses.map((item) => <Cell key={item.status} fill={chartColors[projectStatuses.findIndex((status) => status.status === item.status)]} opacity={focusedStatus === null || focusedStatus === item.status ? 1 : 0.42} className="chart-sector" />)}</Pie></PieChart>
+            <PieChart accessibilityLayer><ChartTooltip isAnimationActive={false} content={<ChartTooltipContent nameKey="status" labelFormatter={(_, payload) => payload[0]?.payload?.status ?? ""} formatter={(value) => { const count = Number(value); return <span className="font-mono font-medium tabular-nums text-foreground">{count.toLocaleString()} {count === 1 ? "project" : "projects"}</span> }} />} /><Pie data={visibleStatuses} dataKey="count" nameKey="status" innerRadius="56%" outerRadius="76%" paddingAngle={2} stroke="var(--card)" animationBegin={0} animationDuration={reducedMotion ? 0 : 650} isAnimationActive={!reducedMotion} onMouseEnter={(_, index) => setHoveredStatus(visibleStatuses[index]?.status ?? null)} onMouseLeave={() => setHoveredStatus(null)}>{visibleStatuses.map((item) => <Cell key={item.status} fill={chartColors[projectStatuses.findIndex((status) => status.status === item.status)]} opacity={focusedStatus === null || focusedStatus === item.status ? 1 : 0.42} className="chart-sector" />)}</Pie></PieChart>
           </ChartContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center" aria-hidden="true">
-            <AnimatePresence mode={reducedMotion ? "sync" : "wait"} initial={false}><motion.div key={active?.status ?? "total"} initial={reducedMotion ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={reducedMotion ? undefined : { opacity: 0, y: -4 }} transition={{ duration: reducedMotion ? 0 : motionTiming.quick }} className="text-center"><strong className="block text-3xl font-semibold tabular-nums">{active?.count ?? state.projects.length}</strong><span className="text-xs text-muted-foreground">{active?.status ?? "Projects"}</span></motion.div></AnimatePresence>
+            <div className="text-center"><strong className="block text-3xl font-semibold tabular-nums">{active?.count ?? state.projects.length}</strong><span className="text-xs text-muted-foreground">{active?.status ?? "Projects"}</span></div>
           </div>
         </div>
         <ul className="grid grid-cols-2 gap-1.5 px-5 pb-5 text-sm">{projectStatuses.map((item, index) => <li key={item.status}><button type="button" aria-pressed={activeStatus === item.status} onClick={() => setActiveStatus(activeStatus === item.status ? null : item.status)} onMouseEnter={() => setHoveredStatus(item.status)} onMouseLeave={() => setHoveredStatus(null)} onFocus={() => setHoveredStatus(item.status)} onBlur={() => setHoveredStatus(null)} className={`flex min-h-10 w-full items-center gap-2 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring ${focusedStatus === item.status ? "bg-muted" : ""}`}><span aria-hidden="true" className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: chartColors[index] }} /><span className="min-w-0 flex-1">{item.status}</span><strong className="tabular-nums">{item.count}</strong></button></li>)}</ul>
